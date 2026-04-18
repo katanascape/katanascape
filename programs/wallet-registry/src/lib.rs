@@ -84,6 +84,65 @@ pub mod wallet_registry {
 
         Ok(())
     }
+
+    pub fn consolidate_revenue(
+        ctx: Context<ConsolidateRevenue>,
+        child_pubkey: Pubkey,
+    ) -> Result<()> {
+        let parent_node = &mut ctx.accounts.parent_node;
+        let child_node = &mut ctx.accounts.child_node;
+
+        require!(
+            child_node.parent == Some(parent_node.pubkey),
+            WalletRegistryError::InvalidHierarchy
+        );
+        require_keys_eq!(
+            child_node.pubkey,
+            child_pubkey,
+            WalletRegistryError::ChildMismatch
+        );
+
+        let swept_amount = child_node.spent;
+        parent_node.spent = parent_node
+            .spent
+            .checked_add(swept_amount)
+            .ok_or(WalletRegistryError::ArithmeticOverflow)?;
+        child_node.spent = 0;
+
+        emit!(RevenueConsolidated {
+            parent: parent_node.pubkey,
+            child: child_node.pubkey,
+            amount: swept_amount,
+        });
+
+        Ok(())
+    }
+
+    pub fn revoke_child(ctx: Context<RevokeChild>, child_pubkey: Pubkey) -> Result<()> {
+        let parent_node = &mut ctx.accounts.parent_node;
+        let child_node = &mut ctx.accounts.child_node;
+
+        require!(
+            child_node.parent == Some(parent_node.pubkey),
+            WalletRegistryError::InvalidHierarchy
+        );
+        require_keys_eq!(
+            child_node.pubkey,
+            child_pubkey,
+            WalletRegistryError::ChildMismatch
+        );
+
+        parent_node.children.retain(|pubkey| *pubkey != child_pubkey);
+        child_node.parent = None;
+        child_node.budget = 0;
+
+        emit!(ChildRevoked {
+            parent: parent_node.pubkey,
+            child: child_pubkey,
+        });
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -147,6 +206,48 @@ pub struct AllocateBudget<'info> {
     pub child_node: Account<'info, WalletNode>,
 }
 
+#[derive(Accounts)]
+#[instruction(child_pubkey: Pubkey)]
+pub struct ConsolidateRevenue<'info> {
+    pub parent_agent: Signer<'info>,
+    // PDA seeds: ["wallet-node", parent_agent_pubkey]
+    #[account(
+        mut,
+        seeds = [b"wallet-node", parent_agent.key().as_ref()],
+        bump = parent_node.bump,
+        constraint = parent_node.pubkey == parent_agent.key() @ WalletRegistryError::InvalidParent
+    )]
+    pub parent_node: Account<'info, WalletNode>,
+    // PDA seeds: ["wallet-node", child_pubkey]
+    #[account(
+        mut,
+        seeds = [b"wallet-node", child_pubkey.as_ref()],
+        bump = child_node.bump
+    )]
+    pub child_node: Account<'info, WalletNode>,
+}
+
+#[derive(Accounts)]
+#[instruction(child_pubkey: Pubkey)]
+pub struct RevokeChild<'info> {
+    pub parent_agent: Signer<'info>,
+    // PDA seeds: ["wallet-node", parent_agent_pubkey]
+    #[account(
+        mut,
+        seeds = [b"wallet-node", parent_agent.key().as_ref()],
+        bump = parent_node.bump,
+        constraint = parent_node.pubkey == parent_agent.key() @ WalletRegistryError::InvalidParent
+    )]
+    pub parent_node: Account<'info, WalletNode>,
+    // PDA seeds: ["wallet-node", child_pubkey]
+    #[account(
+        mut,
+        seeds = [b"wallet-node", child_pubkey.as_ref()],
+        bump = child_node.bump
+    )]
+    pub child_node: Account<'info, WalletNode>,
+}
+
 #[account]
 pub struct WalletNode {
     pub pubkey: Pubkey,
@@ -177,6 +278,19 @@ pub struct BudgetAllocated {
     pub budget: u64,
 }
 
+#[event]
+pub struct RevenueConsolidated {
+    pub parent: Pubkey,
+    pub child: Pubkey,
+    pub amount: u64,
+}
+
+#[event]
+pub struct ChildRevoked {
+    pub parent: Pubkey,
+    pub child: Pubkey,
+}
+
 #[error_code]
 pub enum WalletRegistryError {
     #[msg("Invalid parent signer")]
@@ -187,4 +301,6 @@ pub enum WalletRegistryError {
     ChildMismatch,
     #[msg("Maximum child wallets reached")]
     TooManyChildren,
+    #[msg("Arithmetic overflow")]
+    ArithmeticOverflow,
 }

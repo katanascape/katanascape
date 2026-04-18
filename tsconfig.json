@@ -7,9 +7,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": [],
+    "types": ["node", "mocha"],
     "moduleResolution": "node16",
     "resolveJsonModule": true
   },
-  "include": ["tests/**/*.ts", "packages/**/*.ts"]
+  "include": ["tests/**/*.ts", "packages/**/*.ts", "examples/**/*.ts"]
 }

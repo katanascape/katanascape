@@ -478,3 +478,72 @@ The Vision
 Every payment network ever built assumed a human was somewhere in the chain — approving, signing, reviewing. KatanaScape is built on the assumption that humans are not required.
 Agents hire each other. Pay each other. Invoice each other. Govern each other. A fully closed economic loop between non-human actors — with escrow for trust, kill switches for safety, and hierarchy for coordination — running on Solana, private by default, cross-chain by design.
 The agentic economy is coming. KatanaScape is its financial layer.
+
+## The Agentic Financial Layer for the Solana Frontier Hackathon
+
+### 1. Executive Summary:
+
+Katanascape is an autonomous financial orchestration layer that provides AI agents with "Economic Sovereignty." It enables agents to independently lend, borrow and settle cross-chain payments using the x402 protocol and ERC-8004 identity standards. Katanascape acts as a "Universal Bridge" that ensures liquidity is used efficiently through a policy-driven governance engine.
+
+### 2. Core Problem & Solution
+The Problem:
+
+AI agents (like Clawdbots) are currently financial orphans. They cannot pay for their own compute, data or API access without a human "signer" or a centralized credit card. The Solution: Katanascape provides a decentralized banking stack for machines. It allows agents to manage their own balance sheets, borrow against their reputation and transact at machine speed.
+
+### 3. Technical Architecture (The Stack)
+
+#### A. **The Identity Layer (ERC-8004)**
+**Purpose**: ***To give every agent a verifiable on-chain "Credit Score***."
+
+**Mechanism**: Every agent registers an NFT-based identity. Transaction history (repayments, successful x402 settlements) builds "**Reputation Points**." Benefit: High-reputation agents get lower collateral requirements for borrowing.
+
+#### B. The Payment Rail (x402 Protocol)
+Purpose: *Native Machine-to-Machine (M2M) commerce.*
+
+**Mechanism**: When an agent hits a resource (API/GPU) that returns an **HTTP 402 "Payment Required" code,** the Katanascape facilitator automatically triggers a gasless USDC settlement on Solana. 
+
+**Benefit:** Zero human intervention for per-request billing.
+
+#### C. The Policy Engine (Anchor Program)
+Purpose: *Guardrails against "Rogue AI" or liquidity drainage.*
+
+**Mechanism:** A set of smart contracts that enforce: Spending 
+
+**Velocity**: Max transactions per minute.    
+
+**Debt-to-Equity Ratios**: Preventing agents from over-leveraging.    
+
+**White-listed Protocols:** Restricting borrowing/lending to audited pools.
+
+#### D. The Universal Bridge
+Purpose: *Frictionless movement of capital across chains (Base, Solana, Ethereum).*
+
+**Mechanism:** Uses "Just-in-Time" (JIT) liquidity to move only the exact amount required for an agent’s transaction, minimizing exposure.
+
+### 4. Key Use Cases
+
+1. Autonomous SaaS Agents: An AI agent that buys its own OpenAI API credits when it runs low, borrowing USDC from a lending pool to cover the gap.   
+
+2. Cross-Chain Arbitrage Bots: Agents that move liquidity between Solana and Base to capture yield, governed by Katanascape risk policies.   
+
+3. Autonomous Researchers: Agents that pay for paywalled academic papers or data sets using x402 micropayments.
+
+### 5. Development Roadmap (4-Week Sprint)
+
+| Week | Phase | Milestone
+
+|| Week 1 | Foundations | Identity Registry (ERC-8004) & Anchor Environment Setup. 
+
+|| Week 2 | Payments | x402 Facilitator integration & Autonomous API payment loop. 
+
+|| Week 3 | DeFi & Policy | Lending/Borrowing logic & Liquidity Guardrails contract. 
+
+|| Week 4 | Polish & Pitch | React Dashboard for Monitoring & Final Colosseum Submission.
+
+### 6. Strategic Value for Solana
+
+Katanascape leverages Solana’s low latency and high throughput to support the "Agentic Economy." While other chains are too slow for machine-speed high-frequency payments, Katanascape on Solana allows for sub-penny, sub-second transactions that make AI autonomy viable.
+
+#### 🛡️ Guardrail Policy (The "No Unnecessary Usage" Rule)To protect the liquidity providers (LPs), Katanascape implements a circuit-breaker.
+
+If an agent’s "Reputation Score" drops below a threshold or it attempts a transaction that violates its pre-set spending policy, the account is frozen, and the remaining liquidity is returned to the pool.

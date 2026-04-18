@@ -14,8 +14,14 @@ export const ReleaseEscrowParamsSchema = z.object({
   escrowId: z.string().min(1)
 });
 
+export const PartialReleaseEscrowParamsSchema = z.object({
+  escrowId: z.string().min(1),
+  amount: z.number().positive()
+});
+
 export type CreateEscrowParams = z.infer<typeof CreateEscrowParamsSchema>;
 export type ReleaseEscrowParams = z.infer<typeof ReleaseEscrowParamsSchema>;
+export type PartialReleaseEscrowParams = z.infer<typeof PartialReleaseEscrowParamsSchema>;
 
 export interface EscrowResult {
   escrowId: string;
@@ -43,6 +49,18 @@ export async function releaseEscrow(params: ReleaseEscrowParams): Promise<Escrow
   return {
     escrowId: validated.escrowId,
     transactionSignature: "stub-release-escrow-tx",
+    programId: new PublicKey("11111111111111111111111111111113")
+  };
+}
+
+export async function partialReleaseEscrow(
+  params: PartialReleaseEscrowParams
+): Promise<EscrowResult> {
+  const validated = PartialReleaseEscrowParamsSchema.parse(params);
+
+  return {
+    escrowId: validated.escrowId,
+    transactionSignature: "stub-partial-release-escrow-tx",
     programId: new PublicKey("11111111111111111111111111111113")
   };
 }

@@ -96,12 +96,93 @@ describe("katanascape-mvp", () => {
       .rpc();
 
     await escrow.methods
+      .partialRelease(new anchor.BN(1_000_000))
+      .accounts({
+        worker: workerAgent.publicKey,
+        escrowAccount: escrowPda
+      })
+      .signers([workerAgent])
+      .rpc();
+
+    await escrow.methods
       .releaseEscrow()
       .accounts({
         worker: workerAgent.publicKey,
         escrowAccount: escrowPda
       })
       .signers([workerAgent])
+      .rpc();
+
+    const [childNodePda] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("wallet-node"), workerAgent.publicKey.toBuffer()],
+      walletRegistry.programId
+    );
+
+    await walletRegistry.methods
+      .spawnChild(workerAgent.publicKey, new anchor.BN(500_000))
+      .accounts({
+        parentAgent: rootAgent.publicKey,
+        parentNode: rootNodePda,
+        childNode: childNodePda,
+        systemProgram: anchor.web3.SystemProgram.programId
+      })
+      .signers([rootAgent])
+      .rpc();
+
+    await walletRegistry.methods
+      .consolidateRevenue(workerAgent.publicKey)
+      .accounts({
+        parentAgent: rootAgent.publicKey,
+        parentNode: rootNodePda,
+        childNode: childNodePda
+      })
+      .signers([rootAgent])
+      .rpc();
+
+    await walletRegistry.methods
+      .revokeChild(workerAgent.publicKey)
+      .accounts({
+        parentAgent: rootAgent.publicKey,
+        parentNode: rootNodePda,
+        childNode: childNodePda
+      })
+      .signers([rootAgent])
+      .rpc();
+
+    const [killSwitchPda] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("kill-switch"), rootAgent.publicKey.toBuffer()],
+      killSwitch.programId
+    );
+
+    await killSwitch.methods
+      .initializeKillSwitch(rootAgent.publicKey)
+      .accounts({
+        payer: provider.wallet.publicKey,
+        agent: rootAgent.publicKey,
+        killSwitchState: killSwitchPda,
+        systemProgram: anchor.web3.SystemProgram.programId
+      })
+      .signers([rootAgent])
+      .rpc();
+
+    await killSwitch.methods
+      .queueKillSwitch()
+      .accounts({
+        invoker: rootAgent.publicKey,
+        agent: rootAgent.publicKey,
+        killSwitchState: killSwitchPda
+      })
+      .signers([rootAgent])
+      .rpc();
+
+    await killSwitch.methods
+      .triggerKillSwitch()
+      .accounts({
+        invoker: rootAgent.publicKey,
+        agent: rootAgent.publicKey,
+        killSwitchState: killSwitchPda
+      })
+      .signers([rootAgent])
       .rpc();
   });
 });

@@ -27,8 +27,20 @@ export const TriggerKillSwitchParamsSchema = z.object({
   invoker: z.string().min(1)
 });
 
+export const InitializeKillSwitchParamsSchema = z.object({
+  agentWallet: z.string().min(1),
+  authority: z.string().min(1)
+});
+
+export const QueueKillSwitchParamsSchema = z.object({
+  agentWallet: z.string().min(1),
+  invoker: z.string().min(1)
+});
+
 export type SetPoliciesParams = z.infer<typeof SetPoliciesParamsSchema>;
 export type TriggerKillSwitchParams = z.infer<typeof TriggerKillSwitchParamsSchema>;
+export type InitializeKillSwitchParams = z.infer<typeof InitializeKillSwitchParamsSchema>;
+export type QueueKillSwitchParams = z.infer<typeof QueueKillSwitchParamsSchema>;
 
 export interface GrcTxResult {
   transactionSignature: string;
@@ -49,6 +61,26 @@ export async function triggerKillSwitch(params: TriggerKillSwitchParams): Promis
 
   return {
     transactionSignature: "stub-trigger-kill-switch-tx",
+    programId: new PublicKey("11111111111111111111111111111115")
+  };
+}
+
+export async function initializeKillSwitch(
+  params: InitializeKillSwitchParams
+): Promise<GrcTxResult> {
+  InitializeKillSwitchParamsSchema.parse(params);
+
+  return {
+    transactionSignature: "stub-initialize-kill-switch-tx",
+    programId: new PublicKey("11111111111111111111111111111115")
+  };
+}
+
+export async function queueKillSwitch(params: QueueKillSwitchParams): Promise<GrcTxResult> {
+  QueueKillSwitchParamsSchema.parse(params);
+
+  return {
+    transactionSignature: "stub-queue-kill-switch-tx",
     programId: new PublicKey("11111111111111111111111111111115")
   };
 }

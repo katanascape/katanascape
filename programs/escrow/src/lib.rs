@@ -37,6 +37,15 @@ pub mod escrow {
     }
 
     pub fn release_escrow(ctx: Context<ReleaseEscrow>) -> Result<()> {
+        let amount = {
+            let escrow_account = &ctx.accounts.escrow_account;
+            escrow_account.amount.saturating_sub(escrow_account.released_amount)
+        };
+
+        partial_release(ctx, amount)
+    }
+
+    pub fn partial_release(ctx: Context<ReleaseEscrow>, amount: u64) -> Result<()> {
         let escrow_account = &mut ctx.accounts.escrow_account;
         require!(
             escrow_account.state == EscrowState::Locked,
@@ -47,14 +56,26 @@ pub mod escrow {
             ctx.accounts.worker.key(),
             EscrowError::UnauthorizedSigner
         );
+        require!(amount > 0, EscrowError::InvalidAmount);
 
-        escrow_account.state = EscrowState::Released;
-        escrow_account.released_amount = escrow_account.amount;
+        let remaining = escrow_account
+            .amount
+            .checked_sub(escrow_account.released_amount)
+            .ok_or(EscrowError::InvalidReleaseAmount)?;
+        require!(amount <= remaining, EscrowError::InvalidReleaseAmount);
+
+        escrow_account.released_amount = escrow_account
+            .released_amount
+            .checked_add(amount)
+            .ok_or(EscrowError::InvalidReleaseAmount)?;
+        if escrow_account.released_amount == escrow_account.amount {
+            escrow_account.state = EscrowState::Released;
+        }
 
         emit!(EscrowReleased {
             escrow: escrow_account.key(),
             worker: escrow_account.worker,
-            amount: escrow_account.amount,
+            amount,
         });
 
         Ok(())
@@ -173,6 +194,8 @@ pub struct EscrowCancelled {
 pub enum EscrowError {
     #[msg("Escrow amount must be greater than zero")]
     InvalidAmount,
+    #[msg("Escrow release amount is invalid")]
+    InvalidReleaseAmount,
     #[msg("Unauthorized signer for escrow action")]
     UnauthorizedSigner,
     #[msg("Escrow state does not allow this operation")]

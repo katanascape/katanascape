@@ -13,8 +13,20 @@ export const AllocateBudgetParamsSchema = z.object({
   amount: z.number().nonnegative()
 });
 
+export const ConsolidateRevenueParamsSchema = z.object({
+  managerAgent: z.string().min(1),
+  childWallet: z.string().min(1)
+});
+
+export const RevokeChildParamsSchema = z.object({
+  managerAgent: z.string().min(1),
+  childWallet: z.string().min(1)
+});
+
 export type SpawnChildWalletParams = z.infer<typeof SpawnChildWalletParamsSchema>;
 export type AllocateBudgetParams = z.infer<typeof AllocateBudgetParamsSchema>;
+export type ConsolidateRevenueParams = z.infer<typeof ConsolidateRevenueParamsSchema>;
+export type RevokeChildParams = z.infer<typeof RevokeChildParamsSchema>;
 
 export interface HierarchyResult {
   childWallet: string;
@@ -42,6 +54,28 @@ export async function allocateBudget(
   return {
     childWallet: validated.childWallet,
     transactionSignature: "stub-allocate-budget-tx",
+    programId: new PublicKey("11111111111111111111111111111114")
+  };
+}
+
+export async function consolidateRevenue(
+  params: ConsolidateRevenueParams
+): Promise<HierarchyResult> {
+  const validated = ConsolidateRevenueParamsSchema.parse(params);
+
+  return {
+    childWallet: validated.childWallet,
+    transactionSignature: "stub-consolidate-revenue-tx",
+    programId: new PublicKey("11111111111111111111111111111114")
+  };
+}
+
+export async function revokeChild(params: RevokeChildParams): Promise<HierarchyResult> {
+  const validated = RevokeChildParamsSchema.parse(params);
+
+  return {
+    childWallet: validated.childWallet,
+    transactionSignature: "stub-revoke-child-tx",
     programId: new PublicKey("11111111111111111111111111111114")
   };
 }
